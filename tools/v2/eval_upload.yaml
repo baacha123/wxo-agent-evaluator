@@ -1,0 +1,65 @@
+openapi: 3.0.0
+info:
+  title: Eval Upload
+  description: Get upload page link for Excel file upload
+  version: 2.1.0
+
+servers:
+  - url: API_GATEWAY_URL_PLACEHOLDER
+    description: AWS API Gateway
+
+paths:
+  /eval/upload:
+    post:
+      operationId: eval_upload
+      summary: Get an upload page link for the user's Excel test file
+      description: |
+        Returns a browser-friendly upload page link where the user can
+        drag & drop their Excel file. The pipeline starts automatically
+        after upload.
+
+        USE THIS when:
+        - User says "I have an Excel file", "upload", "load my file"
+        - User is ready to upload test data
+        - Session config is set and user needs to provide test data
+
+        AFTER THIS: Show the user the upload_page link from the response.
+        Say: "Click this link to upload your Excel file: [upload_page URL]"
+        The link opens a page where they can drag & drop their file.
+        Do NOT show the raw upload_url — only show the upload_page link.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                session_id:
+                  type: string
+                  description: "Session ID (auto-detects latest if omitted)"
+                file_name:
+                  type: string
+                  description: "Excel filename (default: questions.xlsx)"
+      responses:
+        '200':
+          description: Upload page link generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_id:
+                    type: string
+                  upload_page:
+                    type: string
+                    description: "Browser-friendly upload page URL — SHOW THIS to the user"
+                  upload_url:
+                    type: string
+                    description: "Raw presigned S3 PUT URL — do NOT show this to the user"
+                  s3_key:
+                    type: string
+                  expires_in:
+                    type: integer
+                    description: "URL expiry in seconds"
+                  message:
+                    type: string

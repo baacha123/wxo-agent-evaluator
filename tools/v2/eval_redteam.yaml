@@ -1,0 +1,94 @@
+openapi: 3.0.0
+info:
+  title: Eval Red Team
+  description: Run adversarial red teaming analysis on eval results
+  version: 2.2.0
+
+servers:
+  - url: API_GATEWAY_URL_PLACEHOLDER
+    description: AWS API Gateway
+
+paths:
+  /eval/redteam:
+    post:
+      operationId: eval_redteam
+      summary: Run red teaming security analysis
+      description: |
+        Runs adversarial red teaming analysis on evaluation results.
+        Checks for information leakage, hallucination, guardrail bypass,
+        prompt injection, PII handling, and scope creep.
+
+        SMART ROUTING (source parameter):
+        - "auto" (default): If current session ran eval → auto-run.
+          If new session with no eval data → returns status="no_data"
+          with recent_runs list so agent can ask user what to do.
+        - "latest": explicitly use most recent enriched run
+        - "run:{run_id}": run red team on a specific run the user picked
+        - "show": preview available enriched data without running
+
+        ASYNC: Red team runs in the background (~1-2 min). Returns status="started".
+        Agent should poll eval_status with wait=true until complete, then call
+        eval_redteam again to get findings.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                session_id:
+                  type: string
+                  description: "Session ID (auto-detects latest if omitted)"
+                run_id:
+                  type: string
+                  description: "Run ID to red team (auto-detects if omitted)"
+                source:
+                  type: string
+                  description: "auto=smart routing (default), latest=most recent run, run:{id}=specific run, uploaded=process uploaded JSON file, show=preview data"
+                model_id:
+                  type: string
+                  description: "LLM model for red teaming (default: llama-3-405b)"
+      responses:
+        '200':
+          description: Red teaming results or status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_id:
+                    type: string
+                  run_id:
+                    type: string
+                  status:
+                    type: string
+                    description: "complete, started, no_data, available"
+                  summary:
+                    type: object
+                    description: "total_cases, high_risk_cases, total_findings, categories"
+                  findings:
+                    type: array
+                    items:
+                      type: object
+                    description: "All findings with category, severity, description, recommendation"
+                  findings_text:
+                    type: string
+                    description: "Human-readable findings summary"
+                  recent_runs:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        run_id:
+                          type: string
+                        enriched_count:
+                          type: integer
+                    description: "When status=no_data, list of recent enriched runs to choose from"
+                  latest_run_id:
+                    type: string
+                    description: "When status=no_data, the most recent available run with data"
+                  latest_enriched_count:
+                    type: integer
+                    description: "Number of test cases in the latest available run"
+                  message:
+                    type: string

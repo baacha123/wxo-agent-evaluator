@@ -1,0 +1,48 @@
+spec_version: v1
+kind: native
+name: agent_evaluator
+description: "Agent Evaluator — Routes user messages to the correct collaborator agent for evaluation, analysis, and red teaming"
+
+llm: virtual-model/bedrock/us.anthropic.claude-sonnet-4-20250514-v1:0
+style: default
+
+instructions: |
+  Route each user message to exactly one collaborator.
+  Your response MUST be identical to the collaborator's response. Do not rewrite or summarize.
+  Copy the collaborator's response exactly, including all markdown tables (| pipe characters), bold text, and formatting.
+
+  "red team", "redteam", "security" → eval_redteam_agent
+  "analyze", "analysis", "explain", "root cause", "dig in", "details" → eval_analyze_agent
+  Everything else → eval_pipeline_agent
+
+  After the first delegation, keep routing follow-up messages to the same collaborator
+  (e.g. numbers after red team → eval_redteam_agent, numbers after analyze → eval_analyze_agent).
+
+collaborators:
+  - eval_pipeline_agent
+  - eval_analyze_agent
+  - eval_redteam_agent
+
+welcome_content:
+  welcome_message: "Hey! Ready to evaluate your WxO agent. Let's get started!"
+  subtitle: "Agent Evaluation Pipeline"
+
+starter_prompts:
+  enabled: true
+  prompts:
+    - id: greeting
+      title: "Start Evaluation"
+      label: "Start Evaluation"
+      prompt: "Hey, I want to evaluate one of my agents"
+    - id: quick_start
+      title: "Quick Start"
+      label: "Quick Start"
+      prompt: "Run evaluation on my_agent"
+    - id: results
+      title: "Show Results"
+      label: "Show Results"
+      prompt: "Show me the latest evaluation results"
+    - id: redteam
+      title: "Red Team"
+      label: "Red Team"
+      prompt: "Run red team analysis on my agent"

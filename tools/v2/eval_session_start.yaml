@@ -1,0 +1,52 @@
+openapi: 3.0.0
+info:
+  title: Eval Session Start
+  description: Create a new evaluation session
+  version: 2.0.0
+
+servers:
+  - url: API_GATEWAY_URL_PLACEHOLDER
+    description: AWS API Gateway
+
+paths:
+  /eval/session/start:
+    post:
+      operationId: eval_session_start
+      summary: Start a new evaluation session
+      description: |
+        Creates a new evaluation session and returns a session_id.
+        Call this at the START of any evaluation conversation.
+
+        USE THIS when the user:
+        - Says "hi", "hello", "I want to evaluate", "let's test an agent"
+        - Starts a new conversation about evaluation
+        - Mentions they want to do an evaluation
+
+        AFTER THIS: Ask the user "Which agent would you like to evaluate?"
+        Do NOT pass agent_name here — wait for the user to tell you, then
+        use eval_session_config to set it with their EXACT input.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+      responses:
+        '200':
+          description: Session created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_id:
+                    type: string
+                    description: "Unique session identifier — remember this for all subsequent calls"
+                  status:
+                    type: string
+                  config:
+                    type: object
+                    description: "Current session config (agent_name, limit, etc.)"
+                  message:
+                    type: string

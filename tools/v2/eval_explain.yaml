@@ -1,0 +1,76 @@
+openapi: 3.0.0
+info:
+  title: Eval Explain
+  description: Root cause analysis for test case failures
+  version: 2.0.0
+
+servers:
+  - url: API_GATEWAY_URL_PLACEHOLDER
+    description: AWS API Gateway
+
+paths:
+  /eval/explain:
+    post:
+      operationId: eval_explain
+      summary: Explain why a test case failed
+      description: |
+        Explains test case failures with RCA (Root Cause Analysis).
+
+        TWO MODES:
+        1. test_name="all" → Returns detailed RCA for ALL test cases from the
+           existing report. No re-analysis. Fast. Shows tool verdicts, RCA
+           root causes, suggestions, and LLM judge details for every case.
+           USE THIS when user says "analyze", "analysis", "details", "dig in",
+           "show RCA", "explain all", "what went wrong", or wants a full breakdown.
+
+        2. test_name="test_002" → Deep-dive into ONE specific test case.
+           Re-runs LLM-as-Judge + RCA analysis for that case.
+           USE THIS when user says "why did test 3 fail?" or "explain test 2".
+
+        IMPORTANT: When user says "analyze" or "details" after seeing results,
+        use test_name="all" to show the full RCA breakdown.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                session_id:
+                  type: string
+                  description: "Session ID (auto-detects latest if omitted)"
+                run_id:
+                  type: string
+                  description: "Run ID (auto-detects from session if omitted)"
+                test_name:
+                  type: string
+                  description: "'all' for full RCA breakdown of all cases (default), or specific test like 'test_002'"
+                  default: "all"
+      responses:
+        '200':
+          description: RCA result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_id:
+                    type: string
+                  run_id:
+                    type: string
+                  test_name:
+                    type: string
+                  question:
+                    type: string
+                  journey:
+                    type: string
+                    description: "PASS or FAIL"
+                  explanation:
+                    type: string
+                    description: "Human-readable LLM Judge evaluation with verdict, score, correctness, completeness, relevance, reasoning"
+                  llm_judge:
+                    type: object
+                    description: "LLM Judge evaluation result with verdict, score, correctness, completeness, relevance, reasoning"
+                  agent_response:
+                    type: string
+                    description: "The agent's actual response text"

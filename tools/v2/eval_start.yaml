@@ -1,0 +1,57 @@
+openapi: 3.0.0
+info:
+  title: Eval Start
+  description: Manually start the evaluation pipeline
+  version: 2.0.0
+
+servers:
+  - url: API_GATEWAY_URL_PLACEHOLDER
+    description: AWS API Gateway
+
+paths:
+  /eval/start:
+    post:
+      operationId: eval_start
+      summary: Start the evaluation pipeline
+      description: |
+        Manually starts the Step Functions pipeline for the session.
+        Normally the pipeline auto-starts after Excel upload (S3 trigger),
+        but this tool lets the user start it manually if needed.
+
+        USE THIS when:
+        - User says "start", "run it", "begin evaluation", "go"
+        - S3 trigger didn't fire and user wants to start manually
+        - User has already uploaded and wants to re-run
+
+        AFTER THIS: Tell the user the pipeline has started and offer
+        to check status: "Pipeline is running! I'll keep you posted.
+        Ask me for status anytime."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                session_id:
+                  type: string
+                  description: "Session ID (auto-detects latest if omitted)"
+      responses:
+        '200':
+          description: Pipeline started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_id:
+                    type: string
+                  run_id:
+                    type: string
+                    description: "Pipeline run ID"
+                  status:
+                    type: string
+                  execution_arn:
+                    type: string
+                  message:
+                    type: string

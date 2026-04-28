@@ -1,0 +1,79 @@
+openapi: 3.0.0
+info:
+  title: Eval Session Config
+  description: Update evaluation session configuration
+  version: 2.0.0
+
+servers:
+  - url: API_GATEWAY_URL_PLACEHOLDER
+    description: AWS API Gateway
+
+paths:
+  /eval/session/config:
+    post:
+      operationId: eval_session_config
+      summary: Configure evaluation parameters
+      description: |
+        Updates the session configuration with agent name, limits,
+        and analysis preferences. Can be called multiple times to
+        update different fields.
+
+        USE THIS when the user:
+        - Tells you the agent name to evaluate
+        - Says "limit to 10 tests", "skip judge", etc.
+        - Provides any configuration parameter
+
+        IMPORTANT: When setting agent_name, use the EXACT name the user
+        provided. NEVER use placeholder values or guess the agent name.
+
+        PARAMETERS to collect from user:
+        - agent_name (required): The WxO agent to evaluate — use EXACTLY what user typed
+        - tool_name (optional): Specific tool name to test (for tool-call expectations)
+        - limit (optional): Max number of test cases to run
+        - skip_judge (optional): Skip LLM-as-Judge evaluation (faster, tool-only)
+        - model_id (optional): LLM model for keyword extraction and judge
+
+        AFTER THIS: If agent_name is set, ask user to upload Excel file
+        (call eval_upload to get the upload URL).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                session_id:
+                  type: string
+                  description: "Session ID (auto-detects latest if omitted)"
+                agent_name:
+                  type: string
+                  description: "WxO agent name to evaluate — use EXACTLY what the user typed"
+                tool_name:
+                  type: string
+                  description: "Optional tool name for tool-call expectations (e.g. 'search_benefits')"
+                limit:
+                  type: integer
+                  description: "Max test cases to evaluate (null = all)"
+                skip_judge:
+                  type: boolean
+                  description: "Skip LLM-as-Judge evaluation (default: false)"
+                model_id:
+                  type: string
+                  description: "LLM model for keyword extraction and judge (default: llama-3-405b)"
+      responses:
+        '200':
+          description: Config updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_id:
+                    type: string
+                  config:
+                    type: object
+                    description: "Updated config"
+                  status:
+                    type: string
+                  message:
+                    type: string

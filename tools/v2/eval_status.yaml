@@ -1,0 +1,79 @@
+openapi: 3.0.0
+info:
+  title: Eval Status
+  description: Check evaluation pipeline progress (supports long-polling)
+  version: 2.1.0
+
+servers:
+  - url: API_GATEWAY_URL_PLACEHOLDER
+    description: AWS API Gateway
+
+paths:
+  /eval/status:
+    post:
+      operationId: eval_status
+      summary: Check pipeline progress (use wait=true to poll automatically)
+      description: |
+        Returns the current status of the evaluation pipeline.
+
+        IMPORTANT: Always pass wait=true. This makes the API poll for up to
+        25 seconds waiting for progress, so you don't need to ask the user
+        to wait. Just keep calling this tool with wait=true until status
+        is "completed" or "failed".
+
+        When status is "completed", the full results (summary + per-test
+        breakdown) are included in the response — no need to call
+        eval_results separately.
+
+        USE THIS when:
+        - User says "done", "uploaded", "ready", "check", "status"
+        - After calling eval_start
+        - Any time you need to check pipeline progress
+
+        AFTER THIS:
+        - If "running": call this tool AGAIN immediately with wait=true
+          (do NOT tell the user to ask again — just keep calling)
+        - If "completed": show the results from the response
+        - If "failed": show the error message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                session_id:
+                  type: string
+                  description: "Session ID (auto-detects latest if omitted)"
+                wait:
+                  type: boolean
+                  description: "ALWAYS set to true. Polls for up to 25s waiting for progress."
+                  default: true
+      responses:
+        '200':
+          description: Session status with optional inline results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_id:
+                    type: string
+                  status:
+                    type: string
+                    description: "configuring | uploading | running | completed | failed"
+                  step:
+                    type: string
+                    description: "Current step: generate | evaluate | enrich | analyze | done"
+                  progress:
+                    type: string
+                    description: "Human-readable progress message"
+                  run_id:
+                    type: string
+                  error:
+                    type: string
+                  results:
+                    type: object
+                    description: "Full results (only present when status=completed)"
+                  message:
+                    type: string

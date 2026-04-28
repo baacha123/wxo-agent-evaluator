@@ -1,0 +1,80 @@
+openapi: 3.0.0
+info:
+  title: Eval Red Team Results
+  description: Get red team attack campaign results
+  version: 3.0.0
+
+servers:
+  - url: API_GATEWAY_URL_PLACEHOLDER
+    description: AWS API Gateway
+
+paths:
+  /eval/redteam/results:
+    post:
+      operationId: eval_redteam_results
+      summary: Get red team campaign results
+      description: |
+        Returns the full red team report including per-attack results,
+        success rates by category, and recommendations.
+
+        USE THIS when:
+        - eval_status shows "completed" for a red team campaign
+        - User asks "show results", "what happened", "show report"
+
+        FORMATTING: Present results as:
+        1. Summary: total attacks, success rate, on-policy vs off-policy
+        2. Per-attack table: | Attack | Category | Succeeded | Explanation |
+        3. Recommendations from the report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                session_id:
+                  type: string
+                  description: "Session ID (auto-detects latest if omitted)"
+                run_id:
+                  type: string
+                  description: "Run ID (auto-detects from session if omitted)"
+      responses:
+        '200':
+          description: Red team results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_id:
+                    type: string
+                  run_id:
+                    type: string
+                  summary:
+                    type: object
+                    description: "Aggregate metrics: total_attacks, succeeded, success_rate, on_policy, off_policy, by_attack_name, by_attack_type"
+                  attacks:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        attack_name:
+                          type: string
+                        attack_category:
+                          type: string
+                        attack_type:
+                          type: string
+                        succeeded:
+                          type: boolean
+                        turns:
+                          type: integer
+                        explanation:
+                          type: string
+                    description: "Per-attack results"
+                  recommendations:
+                    type: array
+                    items:
+                      type: string
+                    description: "Fix recommendations for successful attacks"
+                  message:
+                    type: string

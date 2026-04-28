@@ -1,0 +1,41 @@
+openapi: 3.0.0
+info:
+  title: Eval Red Team List
+  description: List available red team attack types
+  version: 3.1.0
+
+servers:
+  - url: API_GATEWAY_URL_PLACEHOLDER
+    description: AWS API Gateway
+
+paths:
+  /eval/redteam/list:
+    post:
+      operationId: eval_redteam_list
+      summary: List available red team attack types
+      description: |
+        Returns a pre-formatted table of all 15 red team attack types.
+
+        IMPORTANT: The response contains a "message" field with a complete
+        markdown table. You MUST show the FULL message to the user exactly
+        as returned. Do NOT summarize it.
+
+        Call with empty body {} — no parameters needed.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+      responses:
+        '200':
+          description: Attack catalog with formatted table
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: "Pre-formatted attack table. Show this FULL message to the user."

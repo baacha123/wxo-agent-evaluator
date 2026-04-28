@@ -1,0 +1,72 @@
+openapi: 3.0.0
+info:
+  title: Eval Results
+  description: Get evaluation analysis results
+  version: 2.0.0
+
+servers:
+  - url: API_GATEWAY_URL_PLACEHOLDER
+    description: AWS API Gateway
+
+paths:
+  /eval/results:
+    post:
+      operationId: eval_results
+      summary: Get evaluation results and metrics
+      description: |
+        Returns the full analysis results including journey success rates,
+        tool matching metrics, text match rates, and per-test breakdowns.
+
+        USE THIS when:
+        - eval_status shows "completed"
+        - User asks "show results", "how did it go?", "show report"
+        - Pipeline is done and user wants to see the metrics
+
+        IMPORTANT: Only call this AFTER eval_status confirms "completed".
+        If still running, check status first.
+
+        FORMATTING: Present results as:
+        1. Summary metrics table (journey %, tool recall %, LLM judge pass rate %, avg score)
+        2. Per-test table (test | question | journey | tools | judge verdict)
+        3. If failures exist, list them and offer eval_explain
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                session_id:
+                  type: string
+                  description: "Session ID (auto-detects latest if omitted)"
+                run_id:
+                  type: string
+                  description: "Run ID (auto-detects from session if omitted)"
+      responses:
+        '200':
+          description: Analysis results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_id:
+                    type: string
+                  run_id:
+                    type: string
+                  summary:
+                    type: object
+                    description: "Aggregate metrics: journey_success_rate, tool_recall, llm_judge_pass_rate, llm_judge_avg_score, total_cases"
+                  cases:
+                    type: array
+                    items:
+                      type: object
+                    description: "Per-test results: test, question, journey, tools, judge (verdict + score)"
+                  failures:
+                    type: array
+                    items:
+                      type: string
+                    description: "List of failed test names"
+                  message:
+                    type: string
+                    description: "One-line summary"

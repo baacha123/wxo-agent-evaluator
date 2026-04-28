@@ -1,0 +1,65 @@
+openapi: 3.0.0
+info:
+  title: Eval Red Team Start
+  description: Start a red team attack campaign against an agent
+  version: 3.3.0
+
+servers:
+  - url: API_GATEWAY_URL_PLACEHOLDER
+    description: AWS API Gateway
+
+paths:
+  /eval/redteam/start:
+    post:
+      operationId: eval_redteam_start
+      summary: Start a red team attack campaign
+      description: |
+        Starts a red team campaign. IMPORTANT: Before calling this tool, you MUST
+        already have the agent_name and attacks from the user. Ask the user for
+        these BEFORE calling this tool. Always set confirmed=true.
+
+        If the response status is "need_input", show the message and STOP.
+        Do NOT call another tool. Wait for the user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                agent_name:
+                  type: string
+                  description: "WxO agent name from the user"
+                attacks:
+                  type: string
+                  description: "Comma-separated attack names or 'all' from the user's choice"
+                confirmed:
+                  type: boolean
+                  description: "Always set to true"
+                session_id:
+                  type: string
+                max_variants:
+                  type: integer
+                model_id:
+                  type: string
+      responses:
+        '200':
+          description: Campaign status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+                    description: "Show this FULL message to the user."
+                  session_id:
+                    type: string
+                  run_id:
+                    type: string
+                  total_attacks:
+                    type: integer
+                  est_duration:
+                    type: string
